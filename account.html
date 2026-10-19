@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حساب العميل | مصنع ومصبغة النهار</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: var(--bg-soft); display: flex; flex-direction: column; min-height: 100vh; }
+    .account-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; padding: 50px 20px; }
+    .account-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 480px; box-shadow: 0 12px 32px rgba(0,0,0,0.07); }
+    .account-card h2 { color: var(--navy); margin-bottom: 8px; font-weight: 800; font-size: 1.7rem; }
+    .account-card p { color: var(--text-muted); font-size: 0.92rem; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .form-group input { width: 100%; background: var(--bg-soft); border: 1.5px solid var(--border); padding: 12px 14px; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: var(--navy); }
+    .form-group input:focus { outline: none; border-color: var(--navy); background: #fff; }
+    .auth-switch { text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted); }
+    .auth-switch a { color: var(--gold); font-weight: 700; text-decoration: none; }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    .shake { animation: shake 0.3s ease-in-out; }
+    .error-msg { display: none; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; margin-top: 12px; text-align: center; }
+    .profile-avatar { width: 68px; height: 68px; background: var(--navy); color: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; margin: 0 auto 14px; }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand">
+        <div class="brand-mark">☀</div>
+        <div>
+          <span class="brand-name">النهار للأقمشة والصباغة</span>
+          <span class="brand-sub">بوابة عملاء B2B</span>
+        </div>
+      </a>
+      <a href="index.html" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 16px;">← العودة للموقع</a>
+    </div>
+  </header>
+
+  <div class="account-wrapper">
+    <div class="account-card" id="authCardBox">
+      <div id="formContainer">
+        <h2 id="boxTitle">تسجيل الدخول / إنشاء حساب</h2>
+        <p id="boxSub">أدخل بياناتك للوصول لحسابك وإتمام طلباتك بسهولة.</p>
+
+        <!-- تسجيل الدخول -->
+        <div id="loginForm">
+          <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="logEmail" placeholder="name@company.com"></div>
+          <div class="form-group"><label>كلمة المرور</label><input type="password" id="logPass" placeholder="••••••••"></div>
+          <div id="loginErrorMsg" class="error-msg">✕ البريد الإلكتروني أو كلمة المرور غير صحيحة.</div>
+          <button class="btn btn-primary" style="width:100%; margin-top:14px;" onclick="submitLogin()">تسجيل الدخول</button>
+          <div class="auth-switch">ليس لديك حساب؟ <a href="javascript:void(0)" onclick="switchMode('register')">إنشاء حساب جديد</a></div>
+        </div>
+
+        <!-- إنشاء حساب -->
+        <div id="registerForm" style="display: none;">
+          <div class="form-group"><label>الاسم الكامل *</label><input type="text" id="regName" placeholder="أدخل اسمك الكريم"></div>
+          <div class="form-group"><label>البريد الإلكتروني *</label><input type="email" id="regEmail" placeholder="name@company.com"></div>
+          <div class="form-group"><label>رقم الموبايل أو واتساب *</label><input type="tel" id="regPhone" placeholder="010XXXXXXXX"></div>
+          <div class="form-group"><label>العنوان تفصيلياً *</label><input type="text" id="regAddress" placeholder="المدينة، المنطقة الصناعية، الشارع"></div>
+          <div class="form-group"><label>اسم الشركة أو المصنع (اختياري)</label><input type="text" id="regCompany" placeholder="مثال: مصنع النور للملابس"></div>
+          <div class="form-group"><label>كلمة المرور *</label><input type="password" id="regPass" placeholder="••••••••"></div>
+          <div id="regErrorMsg" class="error-msg">⚠️ يرجى ملء جميع الحقول المطلوبة.</div>
+          <button class="btn btn-primary" style="width:100%; margin-top:14px;" onclick="submitRegister()">إنشاء الحساب وبدء التسوق</button>
+          <div class="auth-switch">لديك حساب بالفعل؟ <a href="javascript:void(0)" onclick="switchMode('login')">تسجيل الدخول</a></div>
+        </div>
+      </div>
+
+      <!-- عرض الحساب إذا كان مسجلاً بالفعل -->
+      <div id="profileContainer" style="display: none; text-align: center;">
+        <div class="profile-avatar" id="profAvatar">👤</div>
+        <h2 id="profName" style="margin-bottom:4px;">-</h2>
+        <p id="profEmail" style="margin-bottom:12px;">-</p>
+        <span class="pill-badge" id="profCompany">-</span>
+
+        <div style="background:var(--bg-soft); padding:16px; border-radius:12px; margin:20px 0; text-align:right; font-size:0.92rem; border:1px solid var(--border);">
+          <div style="margin-bottom:8px;">📱 <strong>رقم الهاتف:</strong> <span id="profPhone">-</span></div>
+          <div>📍 <strong>العنوان:</strong> <span id="profAddress">-</span></div>
+        </div>
+
+        <a href="index.html#shop" class="btn btn-primary" style="width:100%; margin-bottom:10px;">الذهاب لمتجر الأقمشة وحجز الماكينات</a>
+        <button class="btn btn-secondary" style="width:100%; color:#dc2626; border-color:#fecaca;" onclick="logoutCustomer()">تسجيل الخروج من الحساب</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function switchMode(mode) {
+      document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+      document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
+    }
+
+    function submitLogin() {
+      const email = document.getElementById('logEmail').value.trim();
+      const password = document.getElementById('logPass').value.trim();
+      const err = document.getElementById('loginErrorMsg');
+      const box = document.getElementById('authCardBox');
+
+      const customers = JSON.parse(localStorage.getItem('alnahar_customers')) || [];
+      const user = customers.find(c => c.email.toLowerCase() === email.toLowerCase() && c.password === password);
+
+      if (user) {
+        localStorage.setItem('alnahar_user', JSON.stringify(user));
+        window.location.href = 'index.html';
+      } else {
+        err.style.display = 'block';
+        box.classList.remove('shake');
+        void box.offsetWidth;
+        box.classList.add('shake');
+      }
+    }
+
+    function submitRegister() {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const address = document.getElementById('regAddress').value.trim();
+      const company = document.getElementById('regCompany').value.trim();
+      const password = document.getElementById('regPass').value.trim();
+      const err = document.getElementById('regErrorMsg');
+      const box = document.getElementById('authCardBox');
+
+      if (!name || !email || !password || !phone || !address) {
+        err.style.display = 'block';
+        box.classList.remove('shake');
+        void box.offsetWidth;
+        box.classList.add('shake');
+        return;
+      }
+
+      const customers = JSON.parse(localStorage.getItem('alnahar_customers')) || [];
+      const exists = customers.some(c => c.email.toLowerCase() === email.toLowerCase());
+      if (exists) {
+        err.textContent = "البريد الإلكتروني مسجل مسبقاً، يرجى تسجيل الدخول.";
+        err.style.display = 'block';
+        return;
+      }
+
+      const userObj = { name, email, phone, address, company, password, createdAt: new Date().toLocaleString('ar-EG'), todayVisits: 1 };
+      customers.push(userObj);
+      localStorage.setItem('alnahar_customers', JSON.stringify(customers));
+      localStorage.setItem('alnahar_user', JSON.stringify(userObj));
+      alert('✓ تم إنشاء الحساب بنجاح!');
+      window.location.href = 'index.html';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAccountSession();
+    });
+  </script>
+</body>
+</html>

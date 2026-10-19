@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة تحكم الإدارة | مصنع ومصبغة النهار</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: var(--bg-soft); padding-bottom: 60px; }
+    
+    .login-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; z-index: 2000;
+    }
+    .login-box {
+      background: #fff; padding: 40px 35px; border-radius: 18px; width: 100%; max-width: 420px;
+      text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.25); border: 1px solid var(--border);
+    }
+    .login-box input {
+      width: 100%; padding: 14px; margin: 18px 0 10px; border: 1.5px solid var(--border);
+      border-radius: 10px; font-family: inherit; text-align: center; font-size: 1.05rem; background: var(--bg-soft);
+    }
+    .login-error {
+      display: none; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
+      padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; margin-bottom: 14px;
+    }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    .shake { animation: shake 0.3s ease-in-out; }
+
+    .analytics-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 24px 0;
+    }
+    .analytic-box {
+      background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px;
+      box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px; transition: 0.2s;
+    }
+    .analytic-box:hover { border-color: var(--gold); }
+    .analytic-icon {
+      width: 44px; height: 44px; background: var(--bg-soft); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+    }
+    .analytic-info { flex: 1; }
+    .analytic-num { font-size: 1.6rem; font-weight: 800; color: var(--navy); line-height: 1.1; }
+    .analytic-label { color: var(--text-muted); font-size: 0.8rem; font-weight: 700; margin-top: 2px; }
+
+    .admin-card {
+      background: #fff; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 16px;
+      box-shadow: var(--shadow-sm); overflow: hidden; transition: 0.2s;
+    }
+    .admin-card:hover { border-color: #cbd5e1; }
+    .card-toggle-header {
+      padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; background: #fff; transition: background 0.2s;
+    }
+    .card-toggle-header:hover { background: #f8fafc; }
+    .card-toggle-header h3 { color: var(--navy); margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; }
+    .toggle-btn {
+      background: var(--bg-soft); border: 1px solid var(--border); color: var(--navy);
+      padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer;
+    }
+    .admin-card.open .toggle-btn { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .card-collapsible-body { display: none; padding: 22px 24px; border-top: 1px solid var(--border); background: #ffffff; }
+    .admin-card.open .card-collapsible-body { display: block; }
+
+    .admin-row {
+      display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .admin-row:last-of-type { border-bottom: none; }
+    .admin-row input, .admin-row select {
+      background: var(--bg-soft); border: 1px solid var(--border); padding: 10px 12px;
+      border-radius: 8px; font-family: inherit; font-weight: 600;
+    }
+
+    .order-item-box {
+      background: var(--bg-soft); border: 1px solid var(--border); border-right: 4px solid var(--gold);
+      border-radius: 12px; padding: 16px 20px; margin-bottom: 12px;
+    }
+    .customer-row-box {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      background: var(--bg-soft); border: 1px solid var(--border); padding: 14px 18px; border-radius: 12px; margin-bottom: 10px;
+    }
+    .visit-pill {
+      background: var(--success-bg); color: var(--success); border: 1px solid rgba(5, 150, 105, 0.25);
+      padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 0.85rem;
+    }
+
+    .toast-notify {
+      position: fixed; bottom: 25px; left: 25px; background: var(--navy); color: #fff;
+      padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 0.92rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-right: 4px solid var(--gold);
+      transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 3000;
+    }
+    .toast-notify.show { transform: translateY(0); opacity: 1; }
+    @media (max-width: 768px) { .admin-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <div id="toastBox" class="toast-notify">✓ تم تحديث البيانات بنجاح</div>
+
+  <!-- نافذة حماية لوحة التحكم -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-box" id="loginBox">
+      <div class="brand-mark" style="margin: 0 auto 14px; width: 52px; height: 52px; font-size: 1.5rem;">🔒</div>
+      <h3 style="color:var(--navy); margin-bottom:6px;">بوابة إدارة مصنع النهار</h3>
+      <p style="color:var(--text-muted); font-size:0.9rem;">أدخل كلمة المرور للمتابعة</p>
+      
+      <input type="password" id="adminPin" placeholder="أدخل كلمة المرور..." onkeydown="if(event.key === 'Enter') checkAdminPin()">
+      
+      <div id="loginError" class="login-error">✕ كلمة المرور غير صحيحة.</div>
+
+      <button class="btn btn-primary" style="width:100%; margin-top:6px;" onclick="checkAdminPin()">تسجيل الدخول</button>
+      <a href="index.html" style="display:inline-block; margin-top:16px; font-size:0.85rem; color:var(--text-muted); text-decoration:none;">← العودة للموقع الرئيسي</a>
+    </div>
+  </div>
+
+  <!-- الهيدر -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <div class="brand">
+        <div class="brand-mark">⚙</div>
+        <div>
+          <span class="brand-name">لوحة تحكم إدارة مصنع النهار</span>
+          <span class="brand-sub">إدارة الأسعار والماكينات · سجل الطلبات والعملاء</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary" onclick="manualRefreshData()">🔄 تحديث البيانات</button>
+        <button class="btn btn-secondary" onclick="logoutAdmin()">تسجيل خروج 🔒</button>
+        <a href="index.html" class="btn btn-primary">عرض الموقع ↗</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- شريط الإحصائيات المصغر والأنيق -->
+    <div class="analytics-grid">
+      <div class="analytic-box">
+        <div class="analytic-icon">👥</div>
+        <div class="analytic-info">
+          <div class="analytic-num" id="statTotalCustomers">0</div>
+          <div class="analytic-label">العملاء المسجلون</div>
+        </div>
+      </div>
+
+      <div class="analytic-box">
+        <div class="analytic-icon">📊</div>
+        <div class="analytic-info">
+          <div class="analytic-num" id="statTodayVisits">0</div>
+          <div class="analytic-label">زيارات الموقع اليوم</div>
+        </div>
+      </div>
+
+      <div class="analytic-box">
+        <div class="analytic-icon">📦</div>
+        <div class="analytic-info">
+          <div class="analytic-num" id="statTotalOrders">0</div>
+          <div class="analytic-label">إجمالي الطلبات المستلمة</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- سجل الطلبات والحجوزات الواردة -->
+    <div class="admin-card open" id="card-orders">
+      <div class="card-toggle-header" onclick="toggleSection('card-orders', 'عرض الطلبات ▾', 'إخفاء الطلبات ▴')">
+        <h3>📥 سجل طلبات الشراء وحجوزات الماكينات الواردة</h3>
+        <button class="toggle-btn">إخفاء الطلبات ▴</button>
+      </div>
+      <div class="card-collapsible-body">
+        <div id="adminOrdersList"></div>
+      </div>
+    </div>
+
+    <!-- قائمة العملاء المسجلين ونشاطهم -->
+    <div class="admin-card" id="card-customers">
+      <div class="card-toggle-header" onclick="toggleSection('card-customers', 'عرض العملاء ▾', 'إخفاء العملاء ▴')">
+        <h3>👥 العملاء المسجلون في الموقع</h3>
+        <button class="toggle-btn">عرض العملاء ▾</button>
+      </div>
+      <div class="card-collapsible-body">
+        <div id="adminCustomersList"></div>
+      </div>
+    </div>
+
+    <!-- 1. تعديل أسعار الأقمشة -->
+    <div class="admin-card" id="card-fabrics">
+      <div class="card-toggle-header" onclick="toggleSection('card-fabrics', 'فتح التعديل ✎', 'إغلاق ▴')">
+        <h3>1. تعديل أسعار الأقمشة في المتجر (ج.م / كجم)</h3>
+        <button class="toggle-btn">فتح التعديل ✎</button>
+      </div>
+      <div class="card-collapsible-body">
+        <div id="adminFabricsList"></div>
+        <button class="btn btn-primary" style="margin-top:18px" onclick="saveFabricsAdmin()">حفظ أسعار الأقمشة ✓</button>
+      </div>
+    </div>
+
+    <!-- 2. تعديل أوقات فراغ الماكينات وأسعار التصنيع للغير -->
+    <div class="admin-card" id="card-machines">
+      <div class="card-toggle-header" onclick="toggleSection('card-machines', 'فتح التعديل ✎', 'إغلاق ▴')">
+        <h3>2. تعديل أوقات فراغ الماكينات وأسعار المصنعية للغير</h3>
+        <button class="toggle-btn">فتح التعديل ✎</button>
+      </div>
+      <div class="card-collapsible-body">
+        <div id="adminMachinesList"></div>
+        <button class="btn btn-gold" style="margin-top:18px" onclick="saveMachinesAdmin()">حفظ جدول الماكينات ✓</button>
+      </div>
+    </div>
+
+    <!-- 3. إدارة مراحل الطلبيات والتشغيلات (6 مراحل) -->
+    <div class="admin-card" id="card-batches">
+      <div class="card-toggle-header" onclick="toggleSection('card-batches', 'فتح التعديل ✎', 'إغلاق ▴')">
+        <h3>3. إدارة مراحل تشغيلات العملاء (6 مراحل)</h3>
+        <button class="toggle-btn">فتح التعديل ✎</button>
+      </div>
+      <div class="card-collapsible-body">
+        <div id="adminBatchesList" style="margin-bottom:20px"></div>
+
+        <h4 style="margin-bottom:10px; color:var(--navy)">+ إضافة تشغيلة جديدة لعميل:</h4>
+        <div class="admin-row">
+          <input type="text" id="newBatchCode" placeholder="رقم التشغيلة (مثال: NH-2026-990)">
+          <input type="text" id="newBatchSpec" placeholder="الكمية ونوع القماش">
+          <input type="text" id="newBatchShade" placeholder="اللون المطلوب">
+          <button class="btn btn-primary" onclick="addNewBatch()">إضافة التشغيلة</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. تغيير كلمة مرور الإدارة -->
+    <div class="admin-card" id="card-security">
+      <div class="card-toggle-header" onclick="toggleSection('card-security', 'فتح الإعدادات ⚙', 'إغلاق ▴')">
+        <h3>4. إعدادات الأمان وتغيير كلمة المرور</h3>
+        <button class="toggle-btn">فتح الإعدادات ⚙</button>
+      </div>
+      <div class="card-collapsible-body">
+        <div class="admin-row" style="border-bottom:none;">
+          <span>تعيين كلمة مرور جديدة للوحة التحكم:</span>
+          <input type="password" id="newAdminPass" placeholder="كلمة المرور الجديدة">
+          <input type="password" id="confirmAdminPass" placeholder="تأكيد كلمة المرور">
+          <button class="btn btn-secondary" onclick="updateAdminPassword()">تحديث كلمة المرور</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function toggleSection(cardId, closedText, openText) {
+      const card = document.getElementById(cardId);
+      const btn = card.querySelector('.toggle-btn');
+      const isOpen = card.classList.toggle('open');
+      btn.textContent = isOpen ? openText : closedText;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toastBox');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function manualRefreshData() {
+      loadAdminPanel();
+      showToast('✓ تم تحديث البيانات بنجاح');
+    }
+
+    function checkAdminPin() {
+      const inputEl = document.getElementById('adminPin');
+      const errorEl = document.getElementById('loginError');
+      const boxEl = document.getElementById('loginBox');
+      const storedPass = localStorage.getItem('alnahar_admin_pass') || '2005';
+
+      if (inputEl.value === storedPass) {
+        sessionStorage.setItem('alnahar_admin_logged', 'true');
+        document.getElementById('loginOverlay').style.display = 'none';
+        errorEl.style.display = 'none';
+        loadAdminPanel();
+      } else {
+        errorEl.style.display = 'block';
+        boxEl.classList.remove('shake');
+        void boxEl.offsetWidth;
+        boxEl.classList.add('shake');
+        inputEl.value = '';
+        inputEl.focus();
+      }
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('alnahar_admin_logged');
+      location.reload();
+    }
+
+    function updateAdminPassword() {
+      const p1 = document.getElementById('newAdminPass').value.trim();
+      const p2 = document.getElementById('confirmAdminPass').value.trim();
+
+      if (p1.length < 4) {
+        showToast('⚠️ يرجى اختيار كلمة مرور لا تقل عن 4 أرقام/أحرف');
+        return;
+      }
+      if (p1 !== p2) {
+        showToast('✕ كلمتا المرور غير متطابقتين!');
+        return;
+      }
+
+      localStorage.setItem('alnahar_admin_pass', p1);
+      document.getElementById('newAdminPass').value = '';
+      document.getElementById('confirmAdminPass').value = '';
+      showToast('✓ تم تحديث كلمة مرور الإدارة بنجاح');
+    }
+
+    function loadAdminPanel() {
+      if (sessionStorage.getItem('alnahar_admin_logged') === 'true') {
+        document.getElementById('loginOverlay').style.display = 'none';
+      }
+
+      const customers = JSON.parse(localStorage.getItem('alnahar_customers')) || [];
+      const orders = JSON.parse(localStorage.getItem('alnahar_orders')) || [];
+      const visits = parseInt(localStorage.getItem('alnahar_visits')) || 18;
+
+      document.getElementById('statTotalCustomers').textContent = customers.length;
+      document.getElementById('statTodayVisits').textContent = visits;
+      document.getElementById('statTotalOrders').textContent = orders.length;
+
+      // 1. عرض العملاء
+      const custContainer = document.getElementById('adminCustomersList');
+      if (!customers.length) {
+        custContainer.innerHTML = `<p style="color:var(--text-muted)">لا يوجد عملاء مسجلون حتى الآن.</p>`;
+      } else {
+        custContainer.innerHTML = '';
+        customers.forEach(c => {
+          custContainer.innerHTML += `
+            <div class="customer-row-box">
+              <div>
+                <strong style="font-size:1.02rem; color:var(--navy);">👤 ${c.name} ${c.company ? '(' + c.company + ')' : ''}</strong>
+                <div style="font-size:0.86rem; color:var(--text-muted); margin-top:4px;">
+                  📧 ${c.email} &nbsp;|&nbsp; 📱 ${c.phone} &nbsp;|&nbsp; 📍 ${c.address}
+                </div>
+              </div>
+              <div class="visit-pill">مسجل بالموقع ✓</div>
+            </div>
+          `;
+        });
+      }
+
+      // 2. عرض الطلبات
+      const ordersContainer = document.getElementById('adminOrdersList');
+      if (!orders.length) {
+        ordersContainer.innerHTML = `<p style="color:var(--text-muted)">لا توجد طلبات مسجلة حتى الآن.</p>`;
+      } else {
+        ordersContainer.innerHTML = '';
+        orders.forEach(o => {
+          const itemsSummary = (o.items || []).map(i => `${i.title} (${i.details})`).join(' + ');
+          ordersContainer.innerHTML += `
+            <div class="order-item-box">
+              <div style="display:flex; justify-content:space-between; flex-wrap:wrap; margin-bottom:6px;">
+                <strong>👤 ${o.customerName} — ${o.factoryName} (${o.phone})</strong>
+                <span style="font-size:0.82rem; color:var(--text-muted)">🕒 ${o.date}</span>
+              </div>
+              <div style="font-size:0.9rem; margin-bottom:6px;">📦 <strong>البنود:</strong> ${itemsSummary}</div>
+              <div style="font-size:0.88rem; color:var(--success); font-weight:700;">
+                💰 الإجمالي: ${(o.totalAmount || 0).toLocaleString()} ج.م | سداد: ${o.paidNow ? o.paidNow.toLocaleString() + ' ج.م' : 'كامل'} | عبر: ${o.paymentMethod}
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      // 3. عرض الأقمشة
+      const fabContainer = document.getElementById('adminFabricsList');
+      fabContainer.innerHTML = '';
+      fabricsCatalog.forEach((f, i) => {
+        fabContainer.innerHTML += `
+          <div class="admin-row">
+            <strong>${f.nameAr}</strong>
+            <span>سعر الكيلو (ج.م):</span>
+            <input type="number" id="adm-fab-price-${i}" value="${f.pricePerKg}">
+          </div>
+        `;
+      });
+
+      // 4. عرض الماكينات
+      const macContainer = document.getElementById('adminMachinesList');
+      macContainer.innerHTML = '';
+      machinesData.forEach((m, i) => {
+        macContainer.innerHTML += `
+          <div class="admin-row">
+            <strong>${m.nameAr}</strong>
+            <input type="text" id="adm-mac-status-${i}" value="${m.statusAr}" placeholder="وقت الفراغ">
+            <input type="number" id="adm-mac-rate-${i}" value="${m.rate}" placeholder="سعر المصنعية">
+            <select id="adm-mac-urgent-${i}">
+              <option value="true" ${m.urgent ? 'selected' : ''}>متاح خلال 24 ساعة (أخضر)</option>
+              <option value="false" ${!m.urgent ? 'selected' : ''}>مجدول لاحقاً (ذهبي)</option>
+            </select>
+          </div>
+        `;
+      });
+
+      renderAdminBatches();
+    }
+
+    function saveFabricsAdmin() {
+      fabricsCatalog.forEach((f, i) => {
+        f.pricePerKg = parseFloat(document.getElementById(`adm-fab-price-${i}`).value) || f.pricePerKg;
+      });
+      localStorage.setItem('alnahar_fabrics', JSON.stringify(fabricsCatalog));
+      showToast('✓ تم حفظ أسعار الأقمشة بنجاح');
+    }
+
+    function saveMachinesAdmin() {
+      machinesData.forEach((m, i) => {
+        m.statusAr = document.getElementById(`adm-mac-status-${i}`).value;
+        m.rate = parseFloat(document.getElementById(`adm-mac-rate-${i}`).value) || m.rate;
+        m.urgent = document.getElementById(`adm-mac-urgent-${i}`).value === 'true';
+      });
+      localStorage.setItem('alnahar_machines', JSON.stringify(machinesData));
+      showToast('✓ تم حفظ جدول الماكينات بنجاح');
+    }
+
+    function renderAdminBatches() {
+      const container = document.getElementById('adminBatchesList');
+      container.innerHTML = '';
+      const batches = JSON.parse(localStorage.getItem('alnahar_batches')) || batchesDB;
+      Object.keys(batches).forEach(code => {
+        const b = batches[code];
+        container.innerHTML += `
+          <div class="admin-row">
+            <div><strong>${code}</strong> — ${b.spec} (${b.shade})</div>
+            <span>المرحلة الحالية:</span>
+            <select onchange="updateBatchStage('${code}', this.value)">
+              <option value="1" ${b.stage == 1 ? 'selected' : ''}>01 استلام وفحص الخام</option>
+              <option value="2" ${b.stage == 2 ? 'selected' : ''}>02 التجهيز التحضيري</option>
+              <option value="3" ${b.stage == 3 ? 'selected' : ''}>03 الصباغة</option>
+              <option value="4" ${b.stage == 4 ? 'selected' : ''}>04 الطباعة</option>
+              <option value="5" ${b.stage == 5 ? 'selected' : ''}>05 التجهيز النهائي</option>
+              <option value="6" ${b.stage == 6 ? 'selected' : ''}>06 فحص الجودة والشحن</option>
+            </select>
+          </div>
+        `;
+      });
+    }
+
+    function updateBatchStage(code, newStage) {
+      const batches = JSON.parse(localStorage.getItem('alnahar_batches')) || batchesDB;
+      batches[code].stage = parseInt(newStage);
+      localStorage.setItem('alnahar_batches', JSON.stringify(batches));
+      showToast(`✓ تم نقل التشغيلة ${code} للمرحلة 0${newStage}`);
+    }
+
+    function addNewBatch() {
+      const code = document.getElementById('newBatchCode').value.trim().toUpperCase();
+      const spec = document.getElementById('newBatchSpec').value.trim();
+      const shade = document.getElementById('newBatchShade').value.trim();
+      if (!code || !spec) {
+        showToast('⚠️ يرجى إدخال رقم التشغيلة والمواصفات');
+        return;
+      }
+
+      const batches = JSON.parse(localStorage.getItem('alnahar_batches')) || batchesDB;
+      batches[code] = { spec, shade: shade || 'Standard', date: 'قيد التحديد', stage: 1 };
+      localStorage.setItem('alnahar_batches', JSON.stringify(batches));
+      renderAdminBatches();
+      document.getElementById('newBatchCode').value = '';
+      document.getElementById('newBatchSpec').value = '';
+      document.getElementById('newBatchShade').value = '';
+      showToast(`✓ تمت إضافة التشغيلة ${code} بنجاح`);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAdminPanel();
+    });
+  </script>
+</body>
+</html>
